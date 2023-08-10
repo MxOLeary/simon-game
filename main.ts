@@ -26,7 +26,6 @@ let selection = 0
 let gameState = 0
 let pattern : number[] = []
 let score = 0
-let level = 0
 let gameRun = false
 RunState()
 /** 
@@ -48,6 +47,7 @@ function RunState() {
         } else if (gameState == 2) {
             Ready()
             AddToPattern(3)
+            score += 1
         } else if (gameState == 3) {
             RunLevel()
         } else if (gameState == 4) {
@@ -61,26 +61,24 @@ function RunState() {
 
 function Boot() {
     
-    for (let i = 0; i < 3; i++) {
-        FlashSingle(0, 0, 250)
-    }
+    SpinnyThing(50)
     score = 0
     selection = 0
-    level = 0
     userInput = false
     gameState += 1
+    gameRun = false
 }
 
 function Reset() {
     
-    for (let i = 0; i < 3; i++) {
-        FlashSingle(1, 1, 250)
+    for (let i = 0; i < 1; i++) {
+        FlashIcon(IconNames.SmallSquare, 500)
     }
     score = 0
     selection = 0
-    level = 0
     userInput = false
     gameState += 1
+    gameRun = false
 }
 
 function Ready() {
@@ -99,6 +97,9 @@ function GameOver() {
     
     basic.showString("Game Over")
     gameState += 1
+    selection = 0
+    pattern = []
+    userInput = false
 }
 
 function AddToPattern(n: number) {
@@ -111,8 +112,37 @@ function AddToPattern(n: number) {
 function RunLevel() {
     
     basic.pause(5)
+    DisplayScore()
+    basic.pause(5)
     DisplayPattern(250)
-    gameState += 1
+    userInput = false
+    for (let step of pattern) {
+        while (!userInput) {
+            basic.pause(5)
+        }
+        userInput = false
+        if (selection == step) {
+            
+        } else {
+            gameState += 1
+            DeathAnimation(150)
+            basic.showIcon(IconNames.Sad)
+            basic.pause(1000)
+            DisplayScore()
+            break
+        }
+        
+        userInput = false
+    }
+    if (gameState == 3) {
+        score += 1
+        AddToPattern(1)
+        basic.clearScreen()
+        music.playSoundEffect(music.builtinSoundEffect(soundExpression.happy), SoundExpressionPlayMode.InBackground)
+        basic.showIcon(IconNames.Happy)
+        basic.pause(500)
+    }
+    
 }
 
 /** 
@@ -171,20 +201,117 @@ function FlashSingle(x: number, y: number, waitTime: number) {
 }
 
 function SpinnyThing(waitTime: number) {
-    
+    music.play(music.stringPlayable("C D E F G A B C5 C5 C5", 600), music.PlaybackMode.InBackground)
+    basic.clearScreen()
+    led.plot(2, 0)
+    basic.pause(waitTime)
+    led.plot(3, 0)
+    basic.pause(waitTime)
+    led.plot(4, 0)
+    basic.pause(waitTime)
+    led.plot(4, 1)
+    basic.pause(waitTime)
+    led.plot(4, 2)
+    basic.pause(waitTime)
+    led.plot(4, 3)
+    basic.pause(waitTime)
+    led.plot(4, 4)
+    basic.pause(waitTime)
+    led.plot(3, 4)
+    basic.pause(waitTime)
+    led.plot(2, 4)
+    basic.pause(waitTime)
+    led.plot(1, 4)
+    basic.pause(waitTime)
+    led.plot(0, 4)
+    basic.pause(waitTime)
+    led.plot(0, 3)
+    basic.pause(waitTime)
+    led.plot(0, 2)
+    basic.pause(waitTime)
+    led.plot(0, 1)
+    basic.pause(waitTime)
+    led.plot(0, 0)
+    basic.pause(waitTime)
+    led.plot(1, 0)
+    basic.pause(waitTime)
+    led.plot(1, 1)
+    basic.pause(waitTime)
+    basic.clearScreen()
+}
+
+function FlashIcon(icon: number, waitTime: number) {
+    basic.clearScreen()
+    basic.showIcon(icon)
+    basic.clearScreen()
+    basic.pause(waitTime)
 }
 
 function DeathAnimation(waitTime: number) {
-    
+    basic.clearScreen()
+    music.playSoundEffect(music.builtinSoundEffect(soundExpression.sad), SoundExpressionPlayMode.InBackground)
+    basic.plotLeds(`
+    . # . # .
+    . . . . .
+    . . . . .
+    . . . . .
+    . . . . .
+    `)
+    basic.pause(waitTime)
+    basic.plotLeds(`
+        # # # # #
+        . # . # .
+        . . . . .
+        . . . . .
+        . . . . .
+        `)
+    basic.pause(waitTime)
+    basic.plotLeds(`
+        # # # # #
+        # # # # #
+        . # . # .
+        . . . . .
+        . . . . .
+        `)
+    basic.pause(waitTime)
+    basic.plotLeds(`
+        # # # # #
+        # # # # #
+        # # # # #
+        . # . # .
+        . . . . .
+        `)
+    basic.pause(waitTime)
+    basic.plotLeds(`
+        # # # # #
+        # # # # #
+        # # # # #
+        # # # # #
+        . # . # .
+        `)
+    basic.pause(waitTime)
+    basic.plotLeds(`
+        # # # # #
+        # # # # #
+        # # # # #
+        # # # # #
+        # # # # #
+        `)
+    basic.pause(waitTime)
+    FlashAll(waitTime)
 }
 
 function DisplayScore() {
     
+    basic.showNumber(score)
+    basic.pause(2000)
+    basic.clearScreen()
 }
 
 function DisplayPattern(waitTime: number) {
     
     for (let step of pattern) {
+        music.play(music.tonePlayable(349, music.beat(BeatFraction.Half)), music.PlaybackMode.InBackground)
         if (step == 0) {
             FlashLeft(waitTime)
         } else {
